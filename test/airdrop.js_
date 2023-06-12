@@ -1,0 +1,102 @@
+const { expect } = require("chai");
+const { ethers, network } = require("hardhat");
+const provider = waffle.provider;
+
+describe("Greeter", function () {
+  let usdc, miner, owner, accounts;
+  it("Should return the new greeting once it's changed", async function () {
+    [owner, ...accounts] = await ethers.getSigners();
+
+    const MINER = await ethers.getContractFactory("ETHSnowball");
+    miner = await MINER.deploy(accounts[0].address, accounts[1].address, accounts[1].address);
+    await miner.deployed();
+
+    // await miner.startLOTTERY();
+    
+    await miner.throwSnowball(owner.address, {value: ethers.utils.parseEther("0.01")}); // purchase 100 BUSD
+    // console.log("getEggsSinceLastHatch:", await miner.getEggsSinceLastHatch(owner.address));
+    return;
+    await miner.connect(accounts[1]).BuySnows(owner.address, {value: ethers.utils.parseEther("2")});
+    await miner.connect(accounts[2]).BuySnows(owner.address, {value:ethers.utils.parseEther("3")});
+    await miner.connect(accounts[3]).BuySnows(owner.address, {value:ethers.utils.parseEther("4")});
+    return;
+    console.log("ETH Balance: ", await miner.getBalance());
+    console.log("Owner Balance: ", await provider.getBalance(owner.address));
+    console.log("Marketing Balance: ", await provider.getBalance(accounts[0].address));
+
+    console.log("UserInfo O: ", await miner.users(owner.address));
+    console.log("TicketCount: ", await miner.getUserTicketInfo(owner.address, 1));
+
+    console.log("UserInfo 1: ", await miner.users(accounts[1].address));
+    console.log("TicketCount: ", await miner.getUserTicketInfo(accounts[1].address, 1));
+
+    console.log("UserInfo 2: ", await miner.users(accounts[2].address));
+    console.log("TicketCount: ", await miner.getUserTicketInfo(accounts[2].address, 1));
+
+    console.log("UserInfo 3: ", await miner.users(accounts[3].address));
+    console.log("TicketCount: ", await miner.getUserTicketInfo(accounts[3].address, 1));
+
+    await miner.levelGift(accounts[3].address);
+    await miner.levelGift(accounts[3].address);
+
+    console.log("After Gift UserInfo 3: ", await miner.users(accounts[3].address));
+    console.log("TicketCount: ", await miner.getUserTicketInfo(accounts[3].address, 1));
+
+    await miner.blackMultipleWallets([accounts[1].address, accounts[2].address], false);
+
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+
+    await miner.connect(accounts[1]).CompoundRewards(true);
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+
+    console.log("accounts[1] Balance: ", await provider.getBalance(accounts[1].address));
+    await miner.connect(accounts[1]).ClaimRewards();
+    await miner.connect(accounts[2]).ClaimRewards();
+    console.log("accounts[1] Balance: ", await provider.getBalance(accounts[1].address));
+
+    console.log("LOTTERY_ROUND: ", await miner.LOTTERY_ROUND());
+    await miner.connect(accounts[4]).BuySnows(owner.address, {value:ethers.utils.parseEther("0.01")});
+
+    console.log("lotteryInfo: ", await miner.lotteryInfo(1));
+
+    console.log("LOTTERY_ROUND: ", await miner.LOTTERY_ROUND());
+    console.log("UserInfo 2: ", await miner.users(accounts[2].address));
+
+    // console.log("UserInfo: ", await miner.users(owner.address));
+    // console.log("After 70mins, User Investment: ", await miner.getUserLandsAndRewards(owner.address));
+
+    // await miner.ClaimRewards();
+
+    // await miner.connect(accounts[1]).LandsPurchase(accounts[1].address, ethers.utils.parseEther("100"), owner.address);
+    // console.log("User Info: ", await miner.getUserInfo(owner.address));
+    // await miner.LandsGift(owner.address, )
+    // console.log("User Lands: ", await miner.getMyLands());
+    // console.log("Winner: ", await miner.getLotteryWinners(1, 1));
+
+    // console.log("contract started: ", await miner.contractStarted());
+
+
+    // await miner.LandsPurchase(owner.address, ethers.utils.parseEther("100"), owner.address);
+
+    // console.log("User Invest Info: ", await miner.getUserRewardsState(owner.address));
+
+    console.log("MemberList2: ", await miner.getMemberList(0, 10));
+
+    console.log("Owner: ",   owner.address);
+    console.log("account 1: ",   accounts[1].address);
+    console.log("account 2: ",   accounts[2].address);
+    console.log("account 3: ",   accounts[3].address);
+    console.log("account 4: ",   accounts[4].address);
+    console.log("account 5: ",   accounts[5].address);
+    // console.log("Members: ", await miner.getMemberList());
+
+    // await miner.LandsPurchase(owner.address, ethers.utils.parseEther("20"), accounts[0].address);
+
+
+    // await miner.withDraw();
+
+    // console.log("USDC Balance1: ", await miner.getBalance());
+  });
+});

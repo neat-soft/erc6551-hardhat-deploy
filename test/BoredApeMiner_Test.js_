@@ -1,0 +1,192 @@
+const { expect } = require("chai");
+const { ethers, network } = require("hardhat");
+const provider = waffle.provider;
+
+require("@nomiclabs/hardhat-ethers");
+
+describe("Test BoredApeMiner", function () {
+    let owner, accounts, apeMiner, erc20Token;
+    before(async () => {
+        [owner, ...accounts] = await ethers.getSigners();
+
+        const ERC20Token = await ethers.getContractFactory("USDC");
+        erc20Token = await ERC20Token.deploy();
+        await erc20Token.deployed();
+
+        const BoredApeMiner = await ethers.getContractFactory("BoredApeMiner");
+        apeMiner = await BoredApeMiner.deploy(erc20Token.address);
+        await apeMiner.deployed();
+
+        console.log("apeMiner address: ", apeMiner.address);
+    });
+
+    it("Referral Tier Test", async function() {
+        const level = 6;
+        const price = 5000;
+        await erc20Token.approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[0].address);
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log(ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await erc20Token.transfer(accounts[1].address, ethers.utils.parseEther('5000'));
+        await erc20Token.connect(accounts[1]).approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.connect(accounts[1]).buyBoredApe(ethers.utils.parseEther(price.toString()), level, owner.address);
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log(ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await erc20Token.transfer(accounts[2].address, ethers.utils.parseEther('5000'));
+        await erc20Token.connect(accounts[2]).approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.connect(accounts[2]).buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[1].address);
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log(ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+    });
+
+    it("Users can buy Bored Apes. for example level 6", async function() {
+        const level = 6;
+        const price = 5000;
+        await erc20Token.approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[0].address);
+        
+        console.log("Contract Balance after buying Bored Ape whose level is ", level, ": ", ethers.utils.formatEther(await apeMiner.getBalance()));
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log("Ref Amount: ", ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await network.provider.send("evm_increaseTime", [7 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+
+        console.log("Rewards Amount after 1 week", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+
+        await network.provider.send("evm_increaseTime", [100 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+
+        console.log("Rewards Amount after 100 days", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+        
+        console.log("Claimed Rewards Amount: ", await apeMiner.claimRewards());
+    });
+
+    it("Users can buy Bored Apes. for example level 5", async function() {
+        const level = 5;
+        const price = 1000;
+        await erc20Token.approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[0].address);
+        console.log("Contract Balance after buying Bored Ape whose level is ", level, ": ", ethers.utils.formatEther(await apeMiner.getBalance()));
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log("Ref Amount: ", ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await network.provider.send("evm_increaseTime", [7 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+        console.log("Rewards Amount after 1 week", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+
+        await network.provider.send("evm_increaseTime", [100 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+
+        console.log("Rewards Amount after 100 days", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+        
+        console.log("Claimed Rewards Amount: ", await apeMiner.claimRewards());
+    });
+
+    it("Users can buy Bored Apes. for example level 5", async function() {
+        const level = 4;
+        const price = 300;
+        await erc20Token.approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[0].address);
+        console.log("Contract Balance after buying Bored Ape whose level is ", level, ": ", ethers.utils.formatEther(await apeMiner.getBalance()));
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log("Ref Amount: ", ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await network.provider.send("evm_increaseTime", [7 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+        console.log("Rewards Amount after 1 week", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+
+        await network.provider.send("evm_increaseTime", [100 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+
+        console.log("Rewards Amount after 100 days", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+        
+        console.log("Claimed Rewards Amount: ", await apeMiner.claimRewards());
+    });
+
+    it("Users can buy Bored Apes. for example level 5", async function() {
+        const level = 3;
+        const price = 120;
+        await erc20Token.approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[0].address);
+        console.log("Contract Balance after buying Bored Ape whose level is ", level, ": ", ethers.utils.formatEther(await apeMiner.getBalance()));
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log("Ref Amount: ", ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await network.provider.send("evm_increaseTime", [7 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+        console.log("Rewards Amount after 1 week", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+
+        await network.provider.send("evm_increaseTime", [100 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+
+        console.log("Rewards Amount after 100 days", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+        
+        console.log("Claimed Rewards Amount: ", await apeMiner.claimRewards());
+    });
+
+    it("Users can buy Bored Apes. for example level 5", async function() {
+        const level = 2;
+        const price = 20;
+        await erc20Token.approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[0].address);
+        console.log("Contract Balance after buying Bored Ape whose level is ", level, ": ", ethers.utils.formatEther(await apeMiner.getBalance()));
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log("Ref Amount: ", ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await network.provider.send("evm_increaseTime", [7 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+        console.log("Rewards Amount after 1 week", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+
+        await network.provider.send("evm_increaseTime", [100 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+
+        console.log("Rewards Amount after 100 days", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+        
+        console.log("Claimed Rewards Amount: ", await apeMiner.claimRewards());
+    });
+
+    it("Users can buy Bored Apes. for example level 5", async function() {
+        const level = 1;
+        const price = 5;
+        await erc20Token.approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[0].address);
+        console.log("Contract Balance after buying Bored Ape whose level is ", level, ": ", ethers.utils.formatEther(await apeMiner.getBalance()));
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log("Ref Amount: ", ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await network.provider.send("evm_increaseTime", [7 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+        console.log("Rewards Amount after 1 week", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+
+        await network.provider.send("evm_increaseTime", [100 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+
+        console.log("Rewards Amount after 100 days", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+        
+        console.log("Claimed Rewards Amount: ", await apeMiner.claimRewards());
+    });
+
+    it("Users can buy Bored Apes. for example level 5", async function() {
+        const level = 0;
+        const price = 0;
+        await erc20Token.approve(apeMiner.address, ethers.utils.parseEther(price.toString()));
+        await apeMiner.buyBoredApe(ethers.utils.parseEther(price.toString()), level, accounts[0].address);
+        console.log("Contract Balance after buying Bored Ape whose level is ", level, ": ", ethers.utils.formatEther(await apeMiner.getBalance()));
+        await apeMiner.connect(accounts[0]).withdrawRefBonus();
+        console.log("Ref Amount: ", ethers.utils.formatEther(await erc20Token.balanceOf(accounts[0].address)));
+
+        await network.provider.send("evm_increaseTime", [7 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+        console.log("Rewards Amount after 1 week", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+
+        await network.provider.send("evm_increaseTime", [100 * 24 * 3600]);
+        await network.provider.send("evm_mine");
+
+        console.log("Rewards Amount after 100 days", ethers.utils.formatEther(await apeMiner.calcdiv(owner.address)));
+        
+        console.log("Claimed Rewards Amount: ", await apeMiner.claimRewards());
+    });
+});

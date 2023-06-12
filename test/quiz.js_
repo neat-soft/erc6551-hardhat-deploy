@@ -1,0 +1,27 @@
+const { expect } = require("chai");
+const { ethers, network } = require("hardhat");
+const provider = waffle.provider;
+
+describe("Greeter", function () {
+  let usdc, miner, owner, accounts, timer;
+  it("Should return the new greeting once it's changed", async function () {
+    [owner, ...accounts] = await ethers.getSigners();
+
+    const QUIZER = await ethers.getContractFactory("HelloWorld_Quiz");
+    miner = await QUIZER.deploy([owner.address + '000000000000000000000000']);
+    await miner.deployed();
+    
+    console.log("Miner address: ", miner.address);
+
+    await miner.Start("	How Many Seconds Are There In A Day?", "86400 Seconds");
+
+    await miner.connect(accounts[0]).Try("86400", {value: ethers.utils.parseEther("1.01")});
+    await miner.connect(accounts[0]).Try("86400", {value: ethers.utils.parseEther("1.01")});
+    await miner.connect(accounts[0]).Try("86400", {value: ethers.utils.parseEther("1.01")});
+
+    await miner.connect(accounts[1]).Try("86400", {value: ethers.utils.parseEther("1.01")});
+    await miner.connect(accounts[1]).Try("86400", {value: ethers.utils.parseEther("1.01")});
+    await miner.connect(accounts[1]).Try("86400", {value: ethers.utils.parseEther("1.01")});
+    console.log("Miner Balance: ", await provider.getBalance(miner.address));
+  });
+});

@@ -1,0 +1,64 @@
+const { expect } = require("chai");
+const { ethers, network } = require("hardhat");
+const provider = waffle.provider;
+
+describe("BnbMatrix Test", function () {
+  let usdc, timer, miner, owner, accounts;
+  before(async () => {
+    [owner, ...accounts] = await ethers.getSigners();
+
+    const BnbMatrix = await ethers.getContractFactory("BNBMatrix");
+    miner = await BnbMatrix.deploy();
+    await miner.deployed();
+
+    console.log("BnbMatrix address: ", miner.address);
+  });
+
+  it("Deposit Test", async function () {
+    await miner.startMatrix(); // purchase 100 BUSD
+    await miner.Deposit(owner.address, {value: ethers.utils.parseEther("1")});
+    console.log("Last Winner: ", await miner.LAST_WINNER());
+    await expect(miner.Withdraw(1)).to.be.reverted;
+    await miner.Deposit(owner.address, {value: ethers.utils.parseEther("2")});
+    console.log("Last Winner: ", await miner.LAST_WINNER());
+    await expect(miner.Deposit(owner.address, {value: ethers.utils.parseEther("2")})).to.be.reverted;
+
+    await miner.connect(accounts[0]).Deposit(owner.address, {value: ethers.utils.parseEther("1")});
+    console.log("Last Winner: ", await miner.LAST_WINNER());
+    await miner.connect(accounts[0]).Deposit(owner.address, {value: ethers.utils.parseEther("2")});
+    console.log("Last Winner: ", await miner.LAST_WINNER());
+    await expect(miner.connect(accounts[0]).Deposit(owner.address, {value: ethers.utils.parseEther("2")})).to.be.reverted;
+
+    await network.provider.send("evm_increaseTime", [3600]); // 70 mins
+    await network.provider.send("evm_mine");
+    // await miner.Withdraw(0);
+  });
+
+  it("Pool Prize Test", async function () {
+    await miner.connect(accounts[1]).Deposit(owner.address, {value: ethers.utils.parseEther("0.5")});
+    console.log("POOL_PRIZE_SIZE: ", ethers.utils.formatEther(await miner.POOL_PRIZE_SIZE()), "BNB");
+    console.log("Last Winner: ", await miner.LAST_WINNER());
+
+
+    console.log("Owner: ", owner.address);
+    console.log("account0: ", accounts[0].address);
+    console.log("account1: ", accounts[1].address);
+    console.log("account2: ", accounts[2].address);
+    console.log("account3: ", accounts[3].address);
+    
+    return;
+
+    await miner.Deposit(owner.address, {value: ethers.utils.parseEther("1")});
+    await expect(miner.Withdraw(1)).to.be.reverted;
+    await miner.Deposit(owner.address, {value: ethers.utils.parseEther("2")});
+    await expect(miner.Deposit(owner.address, {value: ethers.utils.parseEther("2")})).to.be.reverted;
+
+    await miner.connect(accounts[0]).Deposit(owner.address, {value: ethers.utils.parseEther("1")});
+    await miner.connect(accounts[0]).Deposit(owner.address, {value: ethers.utils.parseEther("2")});
+    await expect(miner.connect(accounts[0]).Deposit(owner.address, {value: ethers.utils.parseEther("2")})).to.be.reverted;
+
+    // await network.provider.send("evm_increaseTime", [86400 * 60]); // 70 mins
+    // await network.provider.send("evm_mine");
+    // await miner.Withdraw(0);
+  });
+});

@@ -1,0 +1,86 @@
+const { expect } = require("chai");
+const { ethers, network } = require("hardhat");
+const provider = waffle.provider;
+
+describe("Greeter", function () {
+  let usdc, timer, miner, owner, accounts;
+  it("BNB Miner Test", async function () {
+    [owner, ...accounts] = await ethers.getSigners();
+
+    const TIMER = await ethers.getContractFactory("TimerPool_BakedBNB");
+    timer = await TIMER.deploy();
+    await timer.deployed();
+    console.log("Timer address: ", timer.address);
+
+    const MINER = await ethers.getContractFactory("BakedBNB");
+    miner = await MINER.deploy(timer.address);
+    await miner.deployed();
+    console.log("Miner address: ", miner.address);
+
+    await timer.setContractAddress(miner.address);
+
+    console.log("accounts[1] Balance0: ", await provider.getBalance(miner.address));
+
+    await miner.seedMarket({value: ethers.utils.parseEther("0")}); // purchase 100 BUSD
+    await miner.buyMiners(owner.address, {value: ethers.utils.parseEther("1")});
+    await network.provider.send("evm_increaseTime", [86400]); // 70 mins
+    await network.provider.send("evm_mine");
+    console.log("My rewards: ", await miner.MyReward(owner.address));
+    return;
+    await miner.buyMiners(accounts[2].address, {value: ethers.utils.parseEther("0.6")});
+    await network.provider.send("evm_increaseTime", [10800]); // 70 mins
+    await network.provider.send("evm_mine");
+    await miner.buyMiners(accounts[2].address, {value: ethers.utils.parseEther("0.1")});
+    return;
+    await miner.connect(accounts[1]).buyMiners(accounts[2].address, {value: ethers.utils.parseEther("1")});
+
+    console.log("My Miners: ", await miner.getMyMiners(accounts[1].address));
+
+    await miner.connect(accounts[2]).buyMiners(accounts[3].address, {value: ethers.utils.parseEther("0.5")});
+    console.log("last user: ", await timer.lastUser());
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+    await miner.connect(accounts[1]).reinvest();
+
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+    await miner.connect(accounts[1]).reinvest();
+
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+    await miner.connect(accounts[1]).reinvest();
+
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+    await miner.connect(accounts[1]).reinvest();
+
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+    await miner.connect(accounts[1]).reinvest();
+
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+    // await miner.Giveaway(accounts[1].address, ethers.utils.parseEther("1"));
+
+    await network.provider.send("evm_increaseTime", [1 * 86400]); // 70 mins
+    await network.provider.send("evm_mine");
+
+    console.log("compoundCounter: ", await miner.compoundCounter(accounts[1].address));
+
+    console.log("accounts[1] Balance0: ", await provider.getBalance(accounts[1].address));
+    await miner.connect(accounts[1]).claimRewards();
+    console.log("accounts[1] Balance1: ", await provider.getBalance(accounts[1].address));
+
+    // await miner.levelGift(accounts[3].address);
+    // await miner.levelGift(accounts[3].address);
+
+
+    console.log("Owner: ",   owner.address);
+    
+    console.log("account 1: ",   accounts[1].address);
+    console.log("account 2: ",   accounts[2].address);
+    console.log("account 3: ",   accounts[3].address);
+    console.log("account 4: ",   accounts[4].address);
+    console.log("account 5: ",   accounts[5].address);
+  });
+});
